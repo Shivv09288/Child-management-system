@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Add Child - Child Management System{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Add a New Child</h1>
+    
+    <form id="addChildForm" class="form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Child's Name *</label>
+                <input type="text" id="name" name="name" required placeholder="Enter child's full name">
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age (years) *</label>
+                <input type="number" id="age" name="age" required min="0" max="18" placeholder="Enter age">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth *</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" required>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender *</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="school">School Name *</label>
+                <input type="text" id="school" name="school" required placeholder="Enter school name">
+            </div>
+
+            <div class="form-group">
+                <label for="grade">Grade/Class *</label>
+                <input type="text" id="grade" name="grade" required placeholder="e.g., 5th Grade, Class A">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add Child</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+
+    <div class="alert-container">
+        <div id="message"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('addChildForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const messageDiv = document.getElementById('message');
+
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const date_of_birth = document.getElementById('date_of_birth').value;
+        const gender = document.getElementById('gender').value;
+        const school = document.getElementById('school').value;
+        const grade = document.getElementById('grade').value;
+
+        try {
+            const response = await fetch('/add-child', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age, date_of_birth, gender, school, grade })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.textContent = data.message;
+                setTimeout(() => {
+                    window.location.href = '/view-children';
+                }, 1500);
+            } else {
+                messageDiv.className = 'alert alert-error';
+                messageDiv.textContent = data.message;
+            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-error';
+            messageDiv.textContent = 'An error occurred. Please try again.';
+        }
+    });
+</script>
+{% endblock %}
