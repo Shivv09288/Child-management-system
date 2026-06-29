@@ -1,31 +1,35 @@
-# Child Management System
+# School Management System
 
-A comprehensive full-stack web application for managing child information, attendance tracking, health records, and parent authentication.
+A comprehensive Java-based web application for managing student information, built with Servlets and JSP for educational institutions and schools.
 
 ## Project Overview
 
-This application provides a complete solution for educational institutions and childcare centers to manage:
-- **User Management**: Parent registration, login, and authentication
-- **Child Management**: Create and manage child information
-- **Attendance Tracking**: Mark and track child attendance
-- **Health Records**: Maintain health and medical information
-- **Parent Details**: Manage parent profile information
+This application provides a complete solution for schools and educational institutions to manage:
+- **Student Management**: Create, read, update, and delete student records
+- **Student Information**: Maintain comprehensive student details and contact information
+- **Search & Filter**: Quick search functionality to find students by name or roll number
+- **Responsive UI**: Modern and user-friendly interface with gradient styling
+- **Error Handling**: Custom error pages with graceful error management
 
 ---
 
 ## Technology Stack
 
 ### Backend
-- **Framework**: Flask 2.3.2 (Python)
-- **Database**: MongoDB
-- **Authentication**: Session-based with password hashing (Werkzeug)
-- **HTTP Server**: Flask development server
+- **Framework**: Apache Tomcat (Servlet Container)
+- **Language**: Java with Servlets
+- **Template Engine**: JSP (JavaServer Pages)
+- **Version**: Java 8+, Servlet 4.0, JSP 2.3
 
 ### Frontend
 - **Markup**: HTML5
 - **Styling**: CSS3
-- **Templates**: Flask Jinja2 template engine
-- **Architecture**: Server-side rendered templates
+- **Architecture**: Server-side rendered JSP templates
+- **Features**: Responsive design with modern UI
+
+### Database
+- **Type**: Configurable (MySQL, PostgreSQL, Oracle, etc.)
+- **Access**: JDBC with DAO pattern
 
 ---
 
@@ -34,30 +38,37 @@ This application provides a complete solution for educational institutions and c
 ```
 child-management-system/
 │
-├── backend/                    # Python Flask backend
-│   ├── app.py                 # Main Flask application with all routes
-│   ├── config.py              # MongoDB configuration and connection
-│   ├── utils.py               # Utility functions
-│   └── requirements.txt        # Python dependencies
+├── src/main/java/
+│   └── com/schoolmgmt/
+│       ├── servlet/                # Servlet classes
+│       │   ├── StudentServlet.java
+│       │   ├── AddStudentServlet.java
+│       │   ├── EditStudentServlet.java
+│       │   ├── DeleteStudentServlet.java
+│       │   └── SearchStudentServlet.java
+│       │
+│       ├── model/                  # Domain models
+│       │   └── Student.java
+│       │
+│       ├── dao/                    # Data Access Objects
+│       │   └── StudentDAO.java
+│       │
+│       └── config/                 # Configuration classes
+│           └── DBConfig.java
 │
-├── frontend/                   # HTML/CSS frontend assets
-│   ├── templates/             # Flask HTML templates
-│   │   ├── base.html          # Base template with navigation
-│   │   ├── login.html         # User login page
-│   │   ├── register.html      # User registration page
-│   │   ├── dashboard.html     # Main dashboard
-│   │   ├── add_child.html     # Add child form
-│   │   ├── view_children.html # View/Edit children list
-│   │   ├── attendance.html    # Mark child attendance
-│   │   ├── health_records.html # Manage health records
-│   │   ├── parent_details.html # View/Edit parent profile
-│   │   ├── 404.html           # 404 error page
-│   │   └── 500.html           # 500 error page
-│   └── static/                # Static assets
-│       └── css/
-│           └── style.css      # Application styling
+├── src/main/webapp/
+│   ├── index.jsp                   # Home page
+│   └── WEB-INF/
+│       ├── web.xml                 # Deployment descriptor
+│       └── jsp/
+│           ├── student-list.jsp    # List all students
+│           ├── add-student.jsp     # Add new student form
+│           ├── edit-student.jsp    # Edit student form
+│           ├── error-404.jsp       # 404 error page
+│           └── error-500.jsp       # 500 error page
 │
-└── README.md                   # This file
+├── pom.xml                         # Maven configuration
+└── README.md                       # This file
 ```
 
 ---
@@ -66,21 +77,20 @@ child-management-system/
 
 Before setting up the application, ensure you have:
 
-1. **Python 3.8+** - [Download Python](https://www.python.org/downloads/)
-2. **MongoDB** - [Download MongoDB Community](https://www.mongodb.com/try/download/community)
-3. **pip** - Python package manager (included with Python)
+1. **Java Development Kit (JDK)** 8 or higher - [Download JDK](https://www.oracle.com/java/technologies/javase-downloads.html)
+2. **Apache Tomcat** 9.0 or higher - [Download Tomcat](https://tomcat.apache.org/download-90.cgi)
+3. **Maven** 3.6+ - [Download Maven](https://maven.apache.org/download.cgi)
+4. **Database** (MySQL/PostgreSQL) - [Download MySQL](https://dev.mysql.com/downloads/mysql/) or [PostgreSQL](https://www.postgresql.org/download/)
 
-### MongoDB Setup
-
-**Windows Installation:**
-1. Download MongoDB Community edition
-2. Run the installer and follow the setup wizard
-3. MongoDB will typically be installed at `C:\Program Files\MongoDB\Server\{version}`
-4. Add MongoDB to PATH or start it manually
-
-**Verify MongoDB is running:**
+### Java Version Check
 ```bash
-mongod --version
+java -version
+javac -version
+```
+
+### Maven Installation Check
+```bash
+mvn -version
 ```
 
 ---
@@ -92,197 +102,271 @@ mongod --version
 cd child-management-system
 ```
 
-### Step 2: Backend Setup
+### Step 2: Database Setup
 
-Navigate to the backend directory:
+**Create Database (MySQL):**
+```sql
+CREATE DATABASE school_management;
+USE school_management;
+
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    roll_number VARCHAR(20) UNIQUE NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    gender VARCHAR(20),
+    date_of_birth DATE,
+    admission_date DATE,
+    email VARCHAR(100),
+    phone VARCHAR(15),
+    address TEXT,
+    city VARCHAR(50),
+    state VARCHAR(50),
+    postal_code VARCHAR(10),
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### Step 3: Configure Database Connection
+
+Edit `src/main/java/com/schoolmgmt/config/DBConfig.java`:
+```java
+public class DBConfig {
+    private static final String URL = "jdbc:mysql://localhost:3306/school_management";
+    private static final String USER = "root";
+    private static final String PASSWORD = "your-password";
+    private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+}
+```
+
+### Step 4: Build the Application
+
+Using Maven:
 ```bash
-cd backend
+mvn clean install
 ```
 
-Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-**Dependencies included:**
-- Flask 2.3.2 - Web framework
-- pymongo 4.4.1 - MongoDB driver
-- Werkzeug 2.3.6 - Security utilities
-
-### Step 3: Configure Database
-
-1. Ensure MongoDB is running on your machine
-2. The default configuration connects to `mongodb://localhost:27017`
-3. Database name: `child_management_db`
-
-To modify the connection, edit `backend/config.py`:
-```python
-MONGO_URI = "mongodb://your-connection-string"
-DB_NAME = "your_database_name"
-```
+This will:
+- Download all dependencies
+- Compile the Java source code
+- Create a WAR file in the `target/` directory
 
 ---
 
 ## Running the Application
 
-### Start Backend Server
+### Option 1: Using Apache Tomcat
 
-1. Navigate to backend directory:
+1. Copy the WAR file to Tomcat:
 ```bash
-cd backend
+cp target/school-management-system.war $CATALINA_HOME/webapps/
 ```
 
-2. Run the Flask application:
+2. Start Tomcat:
 ```bash
-python app.py
+$CATALINA_HOME/bin/startup.sh  # Linux/Mac
+$CATALINA_HOME/bin/startup.bat # Windows
 ```
 
-**Expected output:**
+3. Open browser and navigate to: `http://localhost:8080/school-management-system`
+
+### Option 2: Using Maven Tomcat Plugin
+
+```bash
+mvn tomcat7:run
 ```
- * Running on http://127.0.0.1:5000
- * Press CTRL+C to quit
-```
 
-3. Open your browser and navigate to: `http://localhost:5000`
-
-### First Time Setup
-
-When you first run the application:
-- The database collections will be automatically created
-- Indexes will be set up for optimal performance
-- You'll see initialization messages in the console
+Then navigate to: `http://localhost:8080/school-management-system`
 
 ---
 
 ## Features
 
-### Authentication
-- User registration with email validation
-- Secure password hashing using Werkzeug
-- Session-based authentication
-- Login/logout functionality
+### Student Management
+- ✅ Add new students with comprehensive details
+- ✅ View all students in a paginated table
+- ✅ Edit existing student information
+- ✅ Delete student records
+- ✅ Search students by name or roll number
 
-### Child Management
-- Add and manage multiple children per parent
-- Store child information (name, age, DOB, etc.)
-- Edit and update child details
-- View all children associated with parent account
-
-### Attendance Tracking
-- Mark attendance for each child
-- Track attendance history
-- View attendance records
-
-### Health Records
-- Store health and medical information
-- Track vaccinations and medical history
-- Manage health-related notes
-
-### Parent Management
-- Create and update parent profiles
-- Manage contact information
-- View account details
+### User Interface
+- Modern gradient-based design
+- Responsive layout that works on all devices
+- Interactive forms with validation
+- Clean navigation and action buttons
+- Status indicators for student records
 
 ### Error Handling
 - Custom 404 error page
-- Custom 500 error page
+- Custom 500 server error page
 - User-friendly error messages
+- Graceful navigation recovery
+
+### Data Validation
+- Required field validation
+- Email format validation
+- Phone number validation
+- Date validation for enrollment
 
 ---
 
 ## Database Schema
 
-### Collections
+### students Table
 
-**users**
-- User authentication and profile information
-- Indexes: email (unique)
+| Column | Type | Description |
+|--------|------|-------------|
+| student_id | INT | Primary key, auto-increment |
+| roll_number | VARCHAR(20) | Unique student roll number |
+| first_name | VARCHAR(50) | Student's first name |
+| last_name | VARCHAR(50) | Student's last name |
+| gender | VARCHAR(20) | Student's gender |
+| date_of_birth | DATE | Student's date of birth |
+| admission_date | DATE | Date of admission |
+| email | VARCHAR(100) | Student's email |
+| phone | VARCHAR(15) | Contact phone number |
+| address | TEXT | Student's address |
+| city | VARCHAR(50) | City of residence |
+| state | VARCHAR(50) | State of residence |
+| postal_code | VARCHAR(10) | Postal code |
+| status | VARCHAR(20) | Active/Inactive status |
+| created_at | TIMESTAMP | Record creation time |
+| updated_at | TIMESTAMP | Record update time |
 
-**children**
-- Child information linked to parent accounts
-- Stores child profile data
+---
 
-**attendance**
-- Attendance records for each child
-- Tracks date and status
+## API Routes/Servlets
 
-**health**
-- Health and medical records
-- Stores health-related information
+| Route | Servlet | Method | Description |
+|-------|---------|--------|-------------|
+| `/students` | StudentServlet | GET | List all students |
+| `/addStudent` | AddStudentServlet | GET/POST | Add new student form and processing |
+| `/editStudent` | EditStudentServlet | GET/POST | Edit student form and processing |
+| `/deleteStudent` | DeleteStudentServlet | GET | Delete student |
+| `/searchStudent` | SearchStudentServlet | GET | Search students |
 
 ---
 
 ## Configuration & Customization
 
-### Secret Key Security
-In `backend/app.py`, change the secret key for production:
-```python
-app.secret_key = "your-secure-secret-key-here"
+### Update Database Connection
+
+Edit `src/main/java/com/schoolmgmt/config/DBConfig.java`:
+```java
+private static final String URL = "jdbc:mysql://localhost:3306/your_db";
+private static final String USER = "your_username";
+private static final String PASSWORD = "your_password";
 ```
 
-### Port Configuration
-To run on a different port:
-```bash
-# In backend/app.py, modify:
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
-```
+### Change Servlet Mappings
+
+Edit `src/main/webapp/WEB-INF/web.xml` to modify servlet paths and error pages.
+
+### Customize UI
+
+All CSS styling is embedded in JSP files. Modify the `<style>` sections to customize colors, fonts, and layouts.
 
 ---
 
 ## Troubleshooting
 
-### MongoDB Connection Error
-- **Error**: `ConnectionFailure`
-- **Solution**: Ensure MongoDB is running. Start with: `mongod`
+### Tomcat Connection Error
+- **Error**: Connection refused on port 8080
+- **Solution**: Check if Tomcat is running. Start with `$CATALINA_HOME/bin/startup.sh`
+
+### Database Connection Error
+- **Error**: `SQLException: Access denied for user`
+- **Solution**: Verify database credentials in DBConfig.java
+
+### ClassNotFound Error
+- **Error**: `ClassNotFoundException: com.mysql.cj.jdbc.Driver`
+- **Solution**: Ensure MySQL JDBC driver is in classpath (pom.xml dependency)
+
+### JSP Not Compiling
+- **Error**: `JasperException`
+- **Solution**: Check JSP syntax and ensure all taglibs are properly declared
 
 ### Port Already in Use
-- **Error**: `Address already in use`
-- **Solution**: Change port in app.py or kill the process using port 5000
-
-### Module Not Found
-- **Error**: `ModuleNotFoundError`
-- **Solution**: Ensure all dependencies are installed: `pip install -r requirements.txt`
-
-### Template Not Found
-- **Error**: `TemplateNotFound`
-- **Solution**: Ensure you're running app.py from the correct directory
+- **Error**: `Address already in use: 8080`
+- **Solution**: Change port in Tomcat configuration or kill existing process
 
 ---
 
 ## Development Notes
 
-### File Locations
-- Backend code: `/backend/app.py`
-- Frontend templates: `/frontend/templates/`
-- Styling: `/frontend/static/css/style.css`
-- Database config: `/backend/config.py`
+### Adding New Features
 
-### Adding New Routes
-1. Add route function to `backend/app.py`
-2. Create corresponding template in `frontend/templates/`
-3. Add styling to `frontend/static/css/style.css` if needed
-4. Update navigation in `frontend/templates/base.html`
+1. **Create a new Servlet**:
+```java
+@WebServlet("/newFeature")
+public class NewFeatureServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Implementation
+    }
+}
+```
 
-### Database Operations
-All database operations use PyMongo in `backend/config.py`:
-- Collections are globally accessible
-- Indexes are created on initialization
-- Connection is configured in `MONGO_URI`
+2. **Create corresponding JSP** in `src/main/webapp/WEB-INF/jsp/`
+
+3. **Update DAO** if database operations are needed
+
+### JDBC Best Practices
+- Always close database connections in finally blocks
+- Use prepared statements to prevent SQL injection
+- Handle exceptions gracefully
+- Implement connection pooling for production
 
 ---
 
-## Future Enhancements
+## Performance Optimization
 
-Potential features for future versions:
-- [ ] API endpoints for mobile app integration
-- [ ] Real-time notifications
-- [ ] Advanced reporting and analytics
-- [ ] Photo galleries
-- [ ] Parent-teacher messaging
-- [ ] Fee management system
-- [ ] Document upload and storage
-- [ ] Multi-language support
+### Recommended Enhancements
+- [ ] Implement connection pooling (HikariCP)
+- [ ] Add caching layer for frequent queries
+- [ ] Implement pagination for large result sets
+- [ ] Add database indexing on search columns
+- [ ] Use AJAX for real-time search
+- [ ] Implement session management
+
+---
+
+## Security Considerations
+
+### Implemented
+- ✅ HTTPS cookie configuration
+- ✅ XSS protection through JSP escaping
+- ✅ CSRF token consideration
+
+### Recommended for Production
+- [ ] Implement authentication and authorization
+- [ ] Add CSRF tokens to forms
+- [ ] Use HTTPS/SSL encryption
+- [ ] Implement input validation and sanitization
+- [ ] Add rate limiting
+- [ ] Implement audit logging
+
+---
+
+## Deployment to Production
+
+1. **Build WAR file**:
+```bash
+mvn clean package
+```
+
+2. **Configure for Production**:
+   - Update database connection strings
+   - Set appropriate Tomcat memory settings
+   - Enable HTTPS
+   - Configure security headers
+
+3. **Deploy to Server**:
+```bash
+scp target/school-management-system.war user@server:/path/to/tomcat/webapps/
+```
 
 ---
 
@@ -290,9 +374,9 @@ Potential features for future versions:
 
 For issues or questions:
 1. Check the troubleshooting section above
-2. Verify MongoDB is running
-3. Ensure all dependencies are installed
-4. Check browser console for JavaScript errors
+2. Verify database connection
+3. Check Tomcat logs: `$CATALINA_HOME/logs/catalina.out`
+4. Ensure all dependencies are installed: `mvn dependency:tree`
 
 ---
 
@@ -302,5 +386,13 @@ This project is provided as-is for educational and institutional use.
 
 ---
 
-**Last Updated**: February 25, 2026
-**Version**: 1.0
+## Version History
+
+- **v2.0** - Java Servlet/JSP version (June 29, 2026)
+- **v1.0** - Python Flask version (February 25, 2026)
+
+---
+
+**Last Updated**: June 29, 2026
+**Version**: 2.0
+**Framework**: Java Servlets & JSP
